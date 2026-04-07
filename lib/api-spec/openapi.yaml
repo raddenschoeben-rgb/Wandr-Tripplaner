@@ -1,0 +1,867 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Travel Planner API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: saved-places
+    description: Saved places management
+  - name: trips
+    description: Trip management
+  - name: itinerary
+    description: Itinerary item management
+  - name: budget
+    description: Budget and expense management
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Saved Places ───────────────────────────────────────────────────────────
+  /saved-places:
+    get:
+      operationId: listSavedPlaces
+      tags: [saved-places]
+      summary: List all saved places
+      responses:
+        "200":
+          description: List of saved places
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedPlace"
+    post:
+      operationId: createSavedPlace
+      tags: [saved-places]
+      summary: Save a new place
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSavedPlaceBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPlace"
+
+  /saved-places/{id}:
+    get:
+      operationId: getSavedPlace
+      tags: [saved-places]
+      summary: Get a saved place by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved place
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPlace"
+        "404":
+          description: Not found
+    put:
+      operationId: updateSavedPlace
+      tags: [saved-places]
+      summary: Update a saved place
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSavedPlaceBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPlace"
+    delete:
+      operationId: deleteSavedPlace
+      tags: [saved-places]
+      summary: Delete a saved place
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Trips ──────────────────────────────────────────────────────────────────
+  /trips:
+    get:
+      operationId: listTrips
+      tags: [trips]
+      summary: List all trips
+      responses:
+        "200":
+          description: List of trips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trip"
+    post:
+      operationId: createTrip
+      tags: [trips]
+      summary: Create a new trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTripBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trip"
+
+  /trips/{id}:
+    get:
+      operationId: getTrip
+      tags: [trips]
+      summary: Get a trip with its days and itinerary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trip detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripDetail"
+        "404":
+          description: Not found
+    put:
+      operationId: updateTrip
+      tags: [trips]
+      summary: Update a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTripBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trip"
+    delete:
+      operationId: deleteTrip
+      tags: [trips]
+      summary: Delete a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Itinerary Items ─────────────────────────────────────────────────────────
+  /trips/{tripId}/days/{dayNumber}/items:
+    get:
+      operationId: listItineraryItems
+      tags: [itinerary]
+      summary: List itinerary items for a specific day
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of itinerary items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItineraryItem"
+    post:
+      operationId: createItineraryItem
+      tags: [itinerary]
+      summary: Add a place to a trip day
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItineraryItemBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryItem"
+
+  /trips/{tripId}/days/{dayNumber}/items/reorder:
+    put:
+      operationId: reorderItineraryItems
+      tags: [itinerary]
+      summary: Reorder itinerary items for a day
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderItineraryItemsBody"
+      responses:
+        "200":
+          description: Reordered items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItineraryItem"
+
+  /trips/{tripId}/items/{itemId}:
+    put:
+      operationId: updateItineraryItem
+      tags: [itinerary]
+      summary: Update an itinerary item
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItineraryItemBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryItem"
+    delete:
+      operationId: deleteItineraryItem
+      tags: [itinerary]
+      summary: Remove an itinerary item
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Budget ──────────────────────────────────────────────────────────────────
+  /trips/{tripId}/budget:
+    get:
+      operationId: getTripBudget
+      tags: [budget]
+      summary: Get budget summary for a trip
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Budget summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetSummary"
+
+  /trips/{tripId}/budget/items:
+    get:
+      operationId: listBudgetItems
+      tags: [budget]
+      summary: List all budget items for a trip
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of budget items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BudgetItem"
+    post:
+      operationId: createBudgetItem
+      tags: [budget]
+      summary: Add a budget item
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBudgetItemBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetItem"
+
+  /trips/{tripId}/budget/items/{itemId}:
+    put:
+      operationId: updateBudgetItem
+      tags: [budget]
+      summary: Update a budget item
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBudgetItemBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetItem"
+    delete:
+      operationId: deleteBudgetItem
+      tags: [budget]
+      summary: Delete a budget item
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    SavedPlace:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        category:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          description: Estimated visit duration in minutes
+          nullable: true
+        estimatedCost:
+          type: number
+          description: Estimated cost in USD
+          nullable: true
+        priority:
+          type: integer
+          description: Priority 1-5
+          nullable: true
+        openingHours:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
+        - createdAt
+
+    CreateSavedPlaceBody:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        category:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          nullable: true
+        estimatedCost:
+          type: number
+          nullable: true
+        priority:
+          type: integer
+          nullable: true
+        openingHours:
+          type: string
+          nullable: true
+      required:
+        - name
+        - address
+        - latitude
+        - longitude
+
+    UpdateSavedPlaceBody:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        category:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          nullable: true
+        estimatedCost:
+          type: number
+          nullable: true
+        priority:
+          type: integer
+          nullable: true
+        openingHours:
+          type: string
+          nullable: true
+
+    Trip:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+        totalDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - startDate
+        - endDate
+        - totalDays
+        - createdAt
+
+    TripDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+        totalDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripDay"
+      required:
+        - id
+        - name
+        - startDate
+        - endDate
+        - totalDays
+        - createdAt
+        - days
+
+    TripDay:
+      type: object
+      properties:
+        dayNumber:
+          type: integer
+        date:
+          type: string
+          format: date
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryItem"
+      required:
+        - dayNumber
+        - date
+        - items
+
+    CreateTripBody:
+      type: object
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+      required:
+        - name
+        - startDate
+        - endDate
+
+    UpdateTripBody:
+      type: object
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+
+    ItineraryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        tripId:
+          type: integer
+        savedPlaceId:
+          type: integer
+          nullable: true
+        dayNumber:
+          type: integer
+        position:
+          type: integer
+        customName:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          nullable: true
+        estimatedCost:
+          type: number
+          nullable: true
+        place:
+          $ref: "#/components/schemas/SavedPlace"
+          nullable: true
+      required:
+        - id
+        - tripId
+        - dayNumber
+        - position
+
+    CreateItineraryItemBody:
+      type: object
+      properties:
+        savedPlaceId:
+          type: integer
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          nullable: true
+        estimatedCost:
+          type: number
+          nullable: true
+      required:
+        - savedPlaceId
+
+    UpdateItineraryItemBody:
+      type: object
+      properties:
+        note:
+          type: string
+          nullable: true
+        estimatedDuration:
+          type: integer
+          nullable: true
+        estimatedCost:
+          type: number
+          nullable: true
+        dayNumber:
+          type: integer
+          nullable: true
+
+    ReorderItineraryItemsBody:
+      type: object
+      properties:
+        itemIds:
+          type: array
+          items:
+            type: integer
+          description: Ordered array of item IDs representing the new order
+      required:
+        - itemIds
+
+    BudgetItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        tripId:
+          type: integer
+        category:
+          type: string
+          enum: [transportation, accommodation, food, attractions, shopping, miscellaneous]
+        description:
+          type: string
+        amount:
+          type: number
+        dayNumber:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - tripId
+        - category
+        - description
+        - amount
+        - createdAt
+
+    CreateBudgetItemBody:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [transportation, accommodation, food, attractions, shopping, miscellaneous]
+        description:
+          type: string
+        amount:
+          type: number
+        dayNumber:
+          type: integer
+          nullable: true
+      required:
+        - category
+        - description
+        - amount
+
+    UpdateBudgetItemBody:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [transportation, accommodation, food, attractions, shopping, miscellaneous]
+        description:
+          type: string
+        amount:
+          type: number
+        dayNumber:
+          type: integer
+          nullable: true
+
+    BudgetSummary:
+      type: object
+      properties:
+        tripId:
+          type: integer
+        totalBudget:
+          type: number
+        categoryTotals:
+          type: object
+          additionalProperties:
+            type: number
+        dailyTotals:
+          type: array
+          items:
+            type: object
+            properties:
+              dayNumber:
+                type: integer
+              total:
+                type: number
+            required:
+              - dayNumber
+              - total
+        placesCost:
+          type: number
+          description: Sum of estimated costs from itinerary items
+      required:
+        - tripId
+        - totalBudget
+        - categoryTotals
+        - dailyTotals
+        - placesCost
